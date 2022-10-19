@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- 管理员 表格内容 -->
+  <div class="card">
+    <div class="card-header">
+      <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-default">
+        添加管理员
+      </button>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead align="center">
+          <tr>
+            <th style="width: 10px">id</th>
+            <th>用户名</th>
+            <th>最后登录时间</th>
+            <th>注册时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody align="center">
+          <% for(let i=0; i < data.length; i++){ %>
+            <tr>
+              <td>
+                <%= data[i]._id %>
+              </td>
+              <td>
+                <%= data[i].username %>
+              </td>
+              <td>
+                <%= data[i].last_login %>
+              </td>
+              <td>
+                <%= data[i].register_date %>
+              </td>
+              <td>
+                <button type="button" class="btn btn-danger btn-xs delete" id="<%= data[i]._id %>">
+                  删除
+                </button>
+                <button type="button" class="btn btn-primary btn-xs">
+                  修改密码
+                </button>
+              </td>
+            </tr>
+            <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 添加管理员弹出的模态框 -->
+
+  <div class="modal fade show" id="modal-default" style="padding-right: 17px; display: display" aria-modal="true"
+    role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">添加管理员</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true" id="cancel-x">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- 添加管理员表单 -->
+          <div class="card-body">
+            <form id="addForm">
+              <div class="form-group">
+                <label for="exampleInputEmail1">管理员账号</label>
+                <input name="username" type="text" class="form-control" id="exampleInputEmail1"
+                  placeholder="请输入管理员账号" />
+              </div>
+              <div class="form-group">
+                <label for="exampleInputPassword1">管理员密码</label>
+                <input name="password" type="Password" class="form-control" id="exampleInputPassword1"
+                  placeholder="请输入密码" />
+              </div>
+              <div class="form-group">
+                <label for="exampleInputrePassword">确认密码</label>
+                <input type="Password" class="form-control" id="examplereInputPassword" placeholder="请输入密码" />
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <button id="cancel" type="button" class="btn btn-default" data-dismiss="modal">
+            取消
+          </button>
+          <button id="saveAdmin" type="button" class="btn btn-primary" data-dismiss="modal">
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
