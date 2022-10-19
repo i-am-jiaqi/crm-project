@@ -12,4 +12,10 @@ request.interceptors.response.use(function (response) {
   return response.data;
 });
 
+// 配置请求拦截器，将token添加到每一次请求的请求头中
+request.interceptors.request.use(function (config) {
+  config.headers.token = localStorage.getItem('token');
+  return config;
+});
+
 export default request;

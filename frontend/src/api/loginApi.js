@@ -17,3 +17,10 @@ export function reqLogout(id) {
     },
   });
 }
+
+// 校验token,token在拦截器中处理
+export function reqVerifyToken(id) {
+  return request.post('/verifyToken', {
+    id,
+  });
+}

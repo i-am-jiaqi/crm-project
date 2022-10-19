@@ -13,7 +13,7 @@ import notFound from '@v/404';
 
 // 引入发送请求的函数
 import { reqGetAdmins, reqDeleteAdmin } from './api/adminApi';
-import { reqLogin, reqLogout } from './api/loginApi';
+import { reqLogin, reqLogout, reqVerifyToken } from './api/loginApi';
 
 // 实例化配置前端路由规则的路由对象
 // 传入index.html中用于渲染各个页面的节点id
@@ -46,14 +46,14 @@ router.route('/login', function (req, res) {
     const result = await reqLogin(username, password);
     // 3 根据响应结果判断是否登录成功，成功则提示客户，并跳转首页
     if (result.status) {
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.admin));
       // 3.1 跳转首页
       router.go('/index', { username: result.admin.username });
       // 3.2 提示用户
       toastr.success(result.message);
       // 3.3 存储token
+      localStorage.setItem('token', result.token);
       // 3.4 存储当前用户信息
+      localStorage.setItem('user', JSON.stringify(result.admin));
     } else {
       // 4 如果没有登录成功，则不跳转，直接提示客户
       toastr.error(result.message);
@@ -61,13 +61,18 @@ router.route('/login', function (req, res) {
   });
 });
 
-router.route('/index', function (req, res, next) {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    router.go('/404');
+// 首页
+router.route('/index', async function (req, res, next) {
+  // 如果要在/index里面渲染二级路由，需要按照下面这样写
+  // 页面验证token
+  const verifyResult = await reqVerifyToken(
+    JSON.parse(localStorage.getItem('user')).id
+  );
+  if (!verifyResult.status) {
+    toastr.error(verifyResult.message);
+    router.go('/login');
     return;
   }
-  // 如果要在/index里面渲染二级路由，需要按照下面这样写
   // console.log(req); // req里有个body里面有username
   next(
     index({
@@ -94,15 +99,32 @@ router.route('/index', function (req, res, next) {
   });
 });
 
-router.route('/404', (req, res) => {
-  res.render(notFound());
-});
-
 // 定义/index下面的嵌套路由
-router.route('/index/advList', function (req, res) {
+// 广告页
+router.route('/index/advList', async function (req, res) {
+  // 页面验证token
+  const verifyResult = await reqVerifyToken(
+    JSON.parse(localStorage.getItem('user')).id
+  );
+  if (!verifyResult.status) {
+    toastr.error(verifyResult.message);
+    router.go('/login');
+    return;
+  }
   res.render(advList());
 });
+
+// 管理员页面
 router.route('/index/adminList', async function (req, res) {
+  // 页面验证token
+  const verifyResult = await reqVerifyToken(
+    JSON.parse(localStorage.getItem('user')).id
+  );
+  if (!verifyResult.status) {
+    toastr.error(verifyResult.message);
+    router.go('/login');
+    return;
+  }
   // 1 发送请求获取管理员数据
   // 2 下载axios
   // 3 发送请求

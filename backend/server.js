@@ -2,6 +2,7 @@
   const express = require('express');
   const adminRouter = require('./routers/adminRouter');
   const loginRouter = require('./routers/loginRouter');
+  const verifyToken = require('./routers/verifyToken');
   const connect = require('./db/connect');
 
   try {
@@ -21,6 +22,7 @@
   // 管理员对应的接口，后端路由都要写在最下面
   app.use(adminRouter);
   app.use(loginRouter);
+  app.use(verifyToken);
 
   app.listen(5001, (err) => {
     if (err) console.log('服务器启动失败');
