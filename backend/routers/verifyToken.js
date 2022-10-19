@@ -8,8 +8,8 @@ const jwtManager = require('../utils/jwtManager');
 
 //验证token
 router.post('/verifyToken', async (req, res) => {
-  // 接收当前登录用户的id，data在请求体中，用req.body
-  const { id } = req.body;
+  // 接收当前登录用户的id，data在请求体中，用req.fields
+  const { id } = req.fields;
   // 接收请求头中的token，post接收请求头中的数据用req.get('')
   const token = req.get('token');
   // 开始进行校验 1.是否有token 2.token是否与数据库中的一致 3.是否过期

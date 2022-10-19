@@ -10,7 +10,7 @@ const adminModel = require('../db/models/adminModel');
 // 添加管理员
 router.post('/addAdmin', async (req, res) => {
   // 1.获取用户上传的用户名和密码
-  let { username, password } = req.body;
+  let { username, password } = req.fields;
   // 2.把密码转为密文 npm i md5
   password = md5(password);
   // 3.将用户名和加密之后的密码插入到数据库中
@@ -30,7 +30,7 @@ router.get('/findAdmins', async (req, res) => {
 // 删除某条管理员数据
 router.post('/deleteAdmin', async (req, res) => {
   // 从请求体获取username
-  let { _id } = req.body;
+  let { _id } = req.fields;
   // 删除
   const deleteAdmin = await adminModel.deleteOne({ _id });
   if (deleteAdmin.deletedCount) {

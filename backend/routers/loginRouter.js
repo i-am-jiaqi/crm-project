@@ -10,7 +10,7 @@ const jwtManager = require('../utils/jwtManager');
 router.post('/login', async (req, res) => {
   // 思路步骤：
   // 1 接收客户端上传的用户名和密码
-  const { username, password } = req.body;
+  const { username, password } = req.fields;
   // 2 根据用户名和密码查询数据库，进行比对查看是否有这条数据
   // findOne是一种数据库方法，找到数据库就返回数据对象，找不到返回null
   // 注意：由于注册时密码加密，所以查询时需要用加密后的密文进行查询
