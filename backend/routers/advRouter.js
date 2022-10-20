@@ -14,15 +14,26 @@ router.post('/addAdv', async (req, res) => {
   // 1 获取添加广告表单中的普通信息
   const { advTitle, advLink, advCategory } = req.fields;
   // 2 获取广告图片的文件信息
-  const { file } = req.files;
-  // console.log(req.files);
+  const { advImg } = req.files;
+  console.log(req.files);
   // 3 根据上传的文件信息，拼接一个可以被访问的url地址
-  const filename = file.path.replace('public/uploadDir/', '');
+  const filename = advImg.path.replace('public/uploadDir', '');
   // 4 拼接url地址,为advImg的链接
-  const advImg = 'http://localhost:5001/uploadDir' + filename;
+  const advImgAddress = 'http://localhost:5001/uploadDir' + filename;
   // 5 将广告数据存储到数据库中
-  await advModel.create({ advTitle, advLink, advCategory, advImg });
+  await advModel.create({
+    advTitle,
+    advLink,
+    advCategory,
+    advImg: advImgAddress,
+  });
   res.send({ status: 1, message: '广告添加成功' });
 });
 
+// 自己写的获取所有广告数据
+router.get('/findAdvs', async (req, res) => {
+  const advs = await advModel.find();
+  // 响应
+  res.send({ status: 1, message: '查询成功', data: advs });
+});
 module.exports = router;

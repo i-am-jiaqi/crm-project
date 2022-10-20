@@ -20,11 +20,11 @@ const advSchema = new Schema({
   },
   addAdvTime: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
   updateAdvTime: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
 });
 

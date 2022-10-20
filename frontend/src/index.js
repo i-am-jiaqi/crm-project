@@ -9,11 +9,11 @@ import index from '@v';
 import login from '@v/login';
 import adminList from '@v/adminList';
 import advList from '@v/advList';
-import notFound from '@v/404';
 
 // 引入发送请求的函数
 import { reqGetAdmins, reqDeleteAdmin } from './api/adminApi';
 import { reqLogin, reqLogout, reqVerifyToken } from './api/loginApi';
+import { reqAddAdvs, reqGetAdvs } from './api/advApi';
 
 // 实例化配置前端路由规则的路由对象
 // 传入index.html中用于渲染各个页面的节点id
@@ -23,6 +23,18 @@ const router = new SMERouter('root', 'html5');
 // 由于代码使用了模块化，每一个js文件都是单独的模块，因此每一个模块的变量都为局部变量
 // 如果全局要使用，需要手动将变量暴露到全局
 window.router = router;
+
+// 封装广告页面刷新函数
+async function refreshAdvs() {
+  const result = await reqGetAdvs();
+  result.data.forEach((item) => {
+    item.addAdvTime = dayjs(item.addAdvTime).format('YYYY-MM-DD HH:mm:ss');
+    item.updateAdvTime = dayjs(item.updateAdvTime).format(
+      'YYYY-MM-DD HH:mm:ss'
+    );
+  });
+  return result.data;
+}
 
 // 配置前端路由规则：
 router.route('/login', function (req, res) {
@@ -111,7 +123,18 @@ router.route('/index/advList', async function (req, res) {
     router.go('/login');
     return;
   }
-  res.render(advList());
+  res.render(advList(await refreshAdvs()));
+
+  // 新增广告数据
+  $('#saveAdv').on('click', async function (e) {
+    e.preventDefault();
+    const formdata = new FormData(document.getElementById('addAdvForm'));
+    // console.log(formdata.get('advImg'));
+    // console.log(formdata.get('advTitle'));
+    const addAdvResult = await reqAddAdvs(formdata);
+    res.render(advList(await refreshAdvs()));
+    toastr.success('添加成功');
+  });
 });
 
 // 管理员页面

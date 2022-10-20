@@ -14,7 +14,10 @@ router.post('/addAdmin', async (req, res) => {
   // 2.把密码转为密文 npm i md5
   password = md5(password);
   // 3.将用户名和加密之后的密码插入到数据库中
-  await adminModel.create({ username, password });
+  await adminModel.create({
+    username,
+    password,
+  });
   // 4.提示用户注册成功
   res.send('添加成功');
 });
