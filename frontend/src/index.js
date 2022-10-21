@@ -121,7 +121,7 @@ router.route('/index/advList', async function (req, res) {
 
   // 实现上传图片预览
   // 获取上传文件input框的dom对象，并注册change事件
-  $('.advImgFile').on('change', function (e) {
+  $('.delegation').on('change', '.advImgFile', function (e) {
     try {
       // 1 创建reader对象
       const reader = new FileReader();
@@ -140,7 +140,7 @@ router.route('/index/advList', async function (req, res) {
   });
 
   // 新增广告数据
-  $('#saveAdv').on('click', async function () {
+  $('.delegation').on('click', '#saveAdv', async function () {
     // 上传表单，用formdata获取表单数据
     const formdata = new FormData($('#addAdvForm')[0]);
     // 进行表单校验，每一个表单值都不能为空
@@ -172,15 +172,20 @@ router.route('/index/advList', async function (req, res) {
   });
 
   // 删除广告数据
-  $('.deleteAdv').on('click', async function (e) {
+  $('.delegation').on('click', '.deleteAdv', async function (e) {
     // 获取要删除的数据的id,this.id也可以
     const advId = e.target.id;
     // 发送请求 删除广告
     const result = await reqDeleteAdv(advId);
-    // 提示
-    toastr.success(result.message);
-    // 重新渲染
-    res.render(advList(result.data));
+    if (result.status) {
+      // 提示
+      toastr.success(result.message);
+      // 重新渲染
+      res.render(advList(result.data));
+    } else {
+      toastr.error(result.message);
+      router.go('/login');
+    }
   });
 });
 

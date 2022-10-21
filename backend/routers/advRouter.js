@@ -1,5 +1,9 @@
 // 专门用来定义和广告页面相关的后端路由（接口）
 const express = require('express');
+// 引入fs模块，删除广告图片
+const fs = require('fs');
+// 引入path模块，拼接被删除的文件的绝对路径
+const { resolve } = require('path');
 // 引入操作广告数据的集合对象
 const advModel = require('../db/models/advModel');
 const adminModel = require('../db/models/adminModel');
@@ -70,10 +74,17 @@ router.get('/findAdvs', verifyTokenFirst, async (req, res) => {
 });
 
 // 删除某条广告数据
-router.post('/deleteAdv', verifyTokenFirst, async (req, res) => {
+router.post('/deleteAdv', async (req, res) => {
   // 从请求体获取id
   const { advId } = req.fields;
+  // console.log(advId);
+  // 删除之前先找到这条广告数据，拿到广告图片的文件名
+  const adv = await advModel.findOne({ _id: advId });
+  const fileName = adv.advImg.replace('http://localhost:5001/uploadDir/', '');
   await advModel.deleteOne({ _id: advId });
+  // 手动删除当前数据对应的图片
+  const path = resolve(__dirname, '../public/uploadDir', fileName);
+  fs.unlinkSync(path);
   const refreshAdvData = await advModel.find();
   res.send({ status: 1, message: '删除成功', data: refreshAdvData });
 });
