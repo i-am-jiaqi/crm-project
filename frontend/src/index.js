@@ -2,7 +2,7 @@
 import SMERouter from 'sme-router';
 
 import dayjs from 'dayjs';
-
+window.dayjs = dayjs;
 // 引入模板
 // index是一个函数,传入数据,返回解析后的字符串
 import index from '@v';
@@ -23,18 +23,6 @@ const router = new SMERouter('root', 'html5');
 // 由于代码使用了模块化，每一个js文件都是单独的模块，因此每一个模块的变量都为局部变量
 // 如果全局要使用，需要手动将变量暴露到全局
 window.router = router;
-
-// 封装广告页面刷新函数
-async function refreshAdvs() {
-  const result = await reqGetAdvs();
-  result.data.forEach((item) => {
-    item.addAdvTime = dayjs(item.addAdvTime).format('YYYY-MM-DD HH:mm:ss');
-    item.updateAdvTime = dayjs(item.updateAdvTime).format(
-      'YYYY-MM-DD HH:mm:ss'
-    );
-  });
-  return result.data;
-}
 
 // 配置前端路由规则：
 router.route('/login', function (req, res) {
@@ -127,7 +115,9 @@ router.route('/index/advList', async function (req, res) {
     return;
   }
 
-  res.render(advList(await refreshAdvs()));
+  // 查询所有广告数据,并渲染
+  const result = await reqGetAdvs();
+  res.render(advList(result.data));
 
   // 实现上传图片预览
   // 获取上传文件input框的dom对象，并注册change事件
@@ -150,8 +140,7 @@ router.route('/index/advList', async function (req, res) {
   });
 
   // 新增广告数据
-  $('#saveAdv').on('click', async function (e) {
-    e.preventDefault();
+  $('#saveAdv').on('click', async function () {
     // 上传表单，用formdata获取表单数据
     const formdata = new FormData($('#addAdvForm')[0]);
     // 进行表单校验，每一个表单值都不能为空
@@ -163,23 +152,35 @@ router.route('/index/advList', async function (req, res) {
     )
       return toastr.error('请正确填写表单');
 
+    // 由于服务器接口要校验token，所以除了添加的数据之外，要额外添加当前用户id
+    formdata.append('id', JSON.parse(localStorage.getItem('user')).id);
     const addAdvResult = await reqAddAdvs(formdata);
-    // 清空表单
-    $('#addAdvForm')[0].reset();
-    // 清空预览图
-    $('#advImgPreview')[0].src = '';
 
-    // 刷新页面
-    // res.render(advList(await refreshAdvs()));
-    window.location.reload();
-    toastr.success('添加成功');
+    if (addAdvResult.status) {
+      // 清空表单
+      $('#addAdvForm')[0].reset();
+      // 清空预览图
+      $('#advImgPreview')[0].src = '';
+      // 提示用户验证成功
+      toastr.success(addAdvResult.message);
+      // 刷新页面
+      res.render(advList(addAdvResult.data));
+    } else {
+      toastr.error(addAdvResult.message);
+      router.go('/login');
+    }
   });
 
   // 删除广告数据
-  $('.deleteAdv').on('click', async function () {
-    reqDeleteAdv(this.id);
-    // res.render(advList(await refreshAdvs()));
-    window.location.reload();
+  $('.deleteAdv').on('click', async function (e) {
+    // 获取要删除的数据的id,this.id也可以
+    const advId = e.target.id;
+    // 发送请求 删除广告
+    const result = await reqDeleteAdv(advId);
+    // 提示
+    toastr.success(result.message);
+    // 重新渲染
+    res.render(advList(result.data));
   });
 });
 
@@ -210,7 +211,6 @@ router.route('/index/adminList', async function (req, res) {
 
   $('.delete').on('click', function () {
     reqDeleteAdmin(this.id);
-    window.location.reload();
   });
 });
 

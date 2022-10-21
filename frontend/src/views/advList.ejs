@@ -38,10 +38,10 @@
               <%= data[i].advLink %>
             </td>
             <td>
-              <%= data[i].addAdvTime %>
+              <%= dayjs(data[i].addAdvTime).format('YYYY-MM-DD HH:mm:ss') %>
             </td>
             <td>
-              <%= data[i].updateAdvTime %>
+              <%= dayjs(data[i].updateAdvTime).format('YYYY-MM-DD HH:mm:ss') %>
             </td>
             <td>
               <button type="button" class="btn btn-danger btn-xs deleteAdv" id="<%= data[i]._id %>">删除</button>

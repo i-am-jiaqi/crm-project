@@ -2,7 +2,11 @@ import request from './index';
 
 // 获取所有广告数据
 export function reqGetAdvs() {
-  return request.get('/findAdvs');
+  return request.get('/findAdvs', {
+    params: {
+      id: JSON.parse(localStorage.getItem('user')).id,
+    },
+  });
 }
 
 // 添加广告数据
@@ -17,8 +21,9 @@ export function reqAddAdvs(formdata) {
 }
 
 // 删除广告数据
-export function reqDeleteAdv(_id) {
+export function reqDeleteAdv(advId) {
   return request.post('/deleteAdv', {
-    _id,
+    advId,
+    id: JSON.parse(localStorage.getItem('user')).id,
   });
 }
