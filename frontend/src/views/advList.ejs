@@ -44,7 +44,7 @@
               <%= data[i].updateAdvTime %>
             </td>
             <td>
-              <button type="button" class="btn btn-danger btn-xs">删除</button>
+              <button type="button" class="btn btn-danger btn-xs deleteAdv" id="<%= data[i]._id %>">删除</button>
               <button type="button" class="btn btn-primary btn-xs">修改</button>
             </td>
         </tr>
@@ -89,11 +89,11 @@
             <div class="form-group row">
               <label for="inputPassword3" class="col-sm-2 col-form-label">图片</label>
               <div class="col-sm-10">
-                <input type="file" class="form-control upload-file" id="inputPassword3" name="advImg" />
+                <input type="file" class="form-control upload-file advImgFile" id="inputPassword3" name="advImg" />
               </div>
             </div>
             <div class="form-group row">
-              <img src="/adminLTE/imgs/adv1.jpg" alt="" width="100" />
+              <img src="#" alt="" width="100" id="advImgPreview" />
             </div>
           </div>
           <!-- /.card-body -->

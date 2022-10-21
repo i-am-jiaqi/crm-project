@@ -32,7 +32,7 @@ router.get('/findAdmins', async (req, res) => {
 
 // 删除某条管理员数据
 router.post('/deleteAdmin', async (req, res) => {
-  // 从请求体获取username
+  // 从请求体获取id
   let { _id } = req.fields;
   // 删除
   const deleteAdmin = await adminModel.deleteOne({ _id });

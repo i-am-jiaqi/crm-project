@@ -13,7 +13,7 @@ import advList from '@v/advList';
 // 引入发送请求的函数
 import { reqGetAdmins, reqDeleteAdmin } from './api/adminApi';
 import { reqLogin, reqLogout, reqVerifyToken } from './api/loginApi';
-import { reqAddAdvs, reqGetAdvs } from './api/advApi';
+import { reqAddAdvs, reqGetAdvs, reqDeleteAdv } from './api/advApi';
 
 // 实例化配置前端路由规则的路由对象
 // 传入index.html中用于渲染各个页面的节点id
@@ -58,14 +58,14 @@ router.route('/login', function (req, res) {
     const result = await reqLogin(username, password);
     // 3 根据响应结果判断是否登录成功，成功则提示客户，并跳转首页
     if (result.status) {
-      // 3.1 跳转首页
-      router.go('/index', { username: result.admin.username });
-      // 3.2 提示用户
-      toastr.success(result.message);
-      // 3.3 存储token
+      // 3.1 存储token
       localStorage.setItem('token', result.token);
-      // 3.4 存储当前用户信息
+      // 3.2 存储当前用户信息
       localStorage.setItem('user', JSON.stringify(result.admin));
+      // 3.3 跳转首页
+      router.go('/index', { username: result.admin.username });
+      // 3.4 提示用户
+      toastr.success(result.message);
     } else {
       // 4 如果没有登录成功，则不跳转，直接提示客户
       toastr.error(result.message);
@@ -76,6 +76,9 @@ router.route('/login', function (req, res) {
 // 首页
 router.route('/index', async function (req, res, next) {
   // 如果要在/index里面渲染二级路由，需要按照下面这样写
+  // 验证用户是否存在
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (!user) return router.go('/login');
   // 页面验证token
   const verifyResult = await reqVerifyToken(
     JSON.parse(localStorage.getItem('user')).id
@@ -88,7 +91,7 @@ router.route('/index', async function (req, res, next) {
   // console.log(req); // req里有个body里面有username
   next(
     index({
-      username: req.body.username,
+      username: req.body.username, // 登录成功之后,传递过来的用户名
       url: req.url, //将当前浏览器地址栏的路径传入到index模板中
       subRoute: res.subRoute(), // res.subRoute() ==> <div id="__sub-route-view"></div> 这个标签用来渲染二级路由的结构
     })
@@ -123,17 +126,60 @@ router.route('/index/advList', async function (req, res) {
     router.go('/login');
     return;
   }
+
   res.render(advList(await refreshAdvs()));
+
+  // 实现上传图片预览
+  // 获取上传文件input框的dom对象，并注册change事件
+  $('.advImgFile').on('change', function (e) {
+    try {
+      // 1 创建reader对象
+      const reader = new FileReader();
+      // 2 将选中的文件转成base64
+      // 可以通过事件的files属性拿到文件信息
+      reader.readAsDataURL(e.target.files[0]);
+      // 3 通过reader.load获取转换后的图片
+      reader.onload = function (e) {
+        // console.log(e.target.result) // 转换后的base64
+        // 4 将base64赋值给预览的图片
+        $('#advImgPreview')[0].src = e.target.result;
+      };
+    } catch (error) {
+      $('#advImgPreview')[0].src = '';
+    }
+  });
 
   // 新增广告数据
   $('#saveAdv').on('click', async function (e) {
     e.preventDefault();
-    const formdata = new FormData(document.getElementById('addAdvForm'));
-    // console.log(formdata.get('advImg'));
-    // console.log(formdata.get('advTitle'));
+    // 上传表单，用formdata获取表单数据
+    const formdata = new FormData($('#addAdvForm')[0]);
+    // 进行表单校验，每一个表单值都不能为空
+    if (
+      !formdata.get('advTitle') ||
+      !formdata.get('advCategory') ||
+      !formdata.get('advLink') ||
+      !formdata.get('advImg').size
+    )
+      return toastr.error('请正确填写表单');
+
     const addAdvResult = await reqAddAdvs(formdata);
-    res.render(advList(await refreshAdvs()));
+    // 清空表单
+    $('#addAdvForm')[0].reset();
+    // 清空预览图
+    $('#advImgPreview')[0].src = '';
+
+    // 刷新页面
+    // res.render(advList(await refreshAdvs()));
+    window.location.reload();
     toastr.success('添加成功');
+  });
+
+  // 删除广告数据
+  $('.deleteAdv').on('click', async function () {
+    reqDeleteAdv(this.id);
+    // res.render(advList(await refreshAdvs()));
+    window.location.reload();
   });
 });
 

@@ -15,7 +15,7 @@ router.post('/addAdv', async (req, res) => {
   const { advTitle, advLink, advCategory } = req.fields;
   // 2 获取广告图片的文件信息
   const { advImg } = req.files;
-  console.log(req.files);
+  // console.log(req.files);
   // 3 根据上传的文件信息，拼接一个可以被访问的url地址
   const filename = advImg.path.replace('public/uploadDir', '');
   // 4 拼接url地址,为advImg的链接
@@ -37,3 +37,17 @@ router.get('/findAdvs', async (req, res) => {
   res.send({ status: 1, message: '查询成功', data: advs });
 });
 module.exports = router;
+
+// 自己写的删除某条广告数据
+router.post('/deleteAdv', async (req, res) => {
+  // 从请求体获取id
+  let { _id } = req.fields;
+  // 删除
+  const deleteAdv = await advModel.deleteOne({ _id });
+  // console.log(deleteAdv);
+  if (deleteAdv.deletedCount) {
+    res.send({ status: 1, message: '删除成功' });
+  } else {
+    res.send({ status: 0, message: `${_id}数据不存在，删除失败` });
+  }
+});
