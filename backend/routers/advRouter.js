@@ -74,19 +74,76 @@ router.get('/findAdvs', verifyTokenFirst, async (req, res) => {
 });
 
 // 删除某条广告数据
-router.post('/deleteAdv', async (req, res) => {
+router.post('/deleteAdv', verifyTokenFirst, async (req, res) => {
   // 从请求体获取id
   const { advId } = req.fields;
   // console.log(advId);
   // 删除之前先找到这条广告数据，拿到广告图片的文件名
   const adv = await advModel.findOne({ _id: advId });
-  const fileName = adv.advImg.replace('http://localhost:5001/uploadDir/', '');
+  const filename = adv.advImg.replace('http://localhost:5001/uploadDir/', '');
   await advModel.deleteOne({ _id: advId });
   // 手动删除当前数据对应的图片
-  const path = resolve(__dirname, '../public/uploadDir', fileName);
+  const path = resolve(__dirname, '../public/uploadDir', filename);
   fs.unlinkSync(path);
   const refreshAdvData = await advModel.find();
   res.send({ status: 1, message: '删除成功', data: refreshAdvData });
+});
+
+// 修改广告
+router.post('/updateAdv', verifyTokenFirst, async (req, res) => {
+  const { advTitle, advLink, advCategory, advId } = req.fields;
+  const { advImg } = req.files;
+  // 判断是否修改广告图片
+  if (advImg.size) {
+    // 修改图片
+    // 拼接图片的url地址
+    const newFilename = advImg.path.replace('public/uploadDir', '');
+    const newAdvImg = 'http://localhost:5001/uploadDir' + newFilename;
+    // 删除服务器中原来的图片
+    const adv = await advModel.findOne({ _id: advId });
+    oldFilename = adv.advImg.replace('http://localhost:5001/uploadDir/', '');
+    fs.unlinkSync(resolve(__dirname, '../public/uploadDir', oldFilename));
+
+    // 修改数据库数据
+    await advModel.updateOne(
+      { _id: advId },
+      {
+        $set: {
+          advTitle,
+          advLink,
+          advCategory,
+          advImg: newAdvImg,
+          updateAdvTime: Date.now(),
+        },
+      }
+    );
+  } else {
+    // 图片不修改
+    // 也会保存一个空白文件，需要删除空白文件
+    const filename = advImg.path.replace('public/uploadDir/', '');
+    fs.unlinkSync(resolve(__dirname, '../public/uploadDir', filename));
+
+    // 修改其他数据
+    await advModel.updateOne(
+      { _id: advId },
+      {
+        $set: {
+          advTitle,
+          advLink,
+          advCategory,
+          updateAdvTime: Date.now(),
+        },
+      }
+    );
+  }
+  const advs = await advModel.find();
+  res.send({ status: 1, message: '修改成功', data: advs });
+});
+
+// 查询单条广告数据
+router.get('/getOneAdv', verifyTokenFirst, async (req, res) => {
+  const adv = await advModel.findOne({ _id: req.query.advId });
+  res.send({ status: 1, message: '查询成功', adv });
 });
 
 module.exports = router;

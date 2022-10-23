@@ -27,3 +27,22 @@ export function reqDeleteAdv(advId) {
     id: JSON.parse(localStorage.getItem('user')).id,
   });
 }
+
+// 修改广告
+export function reqUpdateAdv(formdata) {
+  return request.post('/updateAdv', formdata, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}
+
+// 获取一条广告数据
+export function reqGetOneAdv(advId) {
+  return request.get('/getOneAdv', {
+    params: {
+      advId,
+      id: JSON.parse(localStorage.getItem('user')).id,
+    },
+  });
+}

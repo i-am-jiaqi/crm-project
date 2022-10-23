@@ -13,7 +13,13 @@ import advList from '@v/advList';
 // 引入发送请求的函数
 import { reqGetAdmins, reqDeleteAdmin } from './api/adminApi';
 import { reqLogin, reqLogout, reqVerifyToken } from './api/loginApi';
-import { reqAddAdvs, reqGetAdvs, reqDeleteAdv } from './api/advApi';
+import {
+  reqAddAdvs,
+  reqGetAdvs,
+  reqDeleteAdv,
+  reqUpdateAdv,
+  reqGetOneAdv,
+} from './api/advApi';
 
 // 实例化配置前端路由规则的路由对象
 // 传入index.html中用于渲染各个页面的节点id
@@ -23,6 +29,9 @@ const router = new SMERouter('root', 'html5');
 // 由于代码使用了模块化，每一个js文件都是单独的模块，因此每一个模块的变量都为局部变量
 // 如果全局要使用，需要手动将变量暴露到全局
 window.router = router;
+
+// 声明一个当前作用域的变量，用于存储要修改的广告id
+let updateAdvId = '';
 
 // 配置前端路由规则：
 router.route('/login', function (req, res) {
@@ -140,33 +149,57 @@ router.route('/index/advList', async function (req, res) {
   });
 
   // 新增广告数据
-  $('.delegation').on('click', '#saveAdv', async function () {
+  // 获取模态框保存按钮，注册点击事件
+  $('.delegation').on('click', '#saveAdv', async function (e) {
     // 上传表单，用formdata获取表单数据
     const formdata = new FormData($('#addAdvForm')[0]);
-    // 进行表单校验，每一个表单值都不能为空
-    if (
-      !formdata.get('advTitle') ||
-      !formdata.get('advCategory') ||
-      !formdata.get('advLink') ||
-      !formdata.get('advImg').size
-    )
-      return toastr.error('请正确填写表单');
 
-    // 由于服务器接口要校验token，所以除了添加的数据之外，要额外添加当前用户id
-    formdata.append('id', JSON.parse(localStorage.getItem('user')).id);
-    const addAdvResult = await reqAddAdvs(formdata);
+    // 声明一个addOrEditResult变量用于接收保存或修改响应回来的最新的响应对象
+    let addOrEditResult;
 
-    if (addAdvResult.status) {
+    // 判断是保存还是修改
+    if (e.target.innerText === '保存') {
+      // 进行表单校验，每一个表单值都不能为空
+      if (
+        !formdata.get('advTitle') ||
+        !formdata.get('advCategory') ||
+        !formdata.get('advLink') ||
+        !formdata.get('advImg').size
+      )
+        return toastr.error('请正确填写表单');
+
+      // 由于服务器接口要校验token，所以除了添加的数据之外，要额外添加当前用户id
+      formdata.append('id', JSON.parse(localStorage.getItem('user')).id);
+      addOrEditResult = await reqAddAdvs(formdata);
+    } else {
+      // 修改的逻辑
+      // 进行表单校验，每一个表单值都不能为空
+      if (
+        !formdata.get('advTitle') ||
+        !formdata.get('advCategory') ||
+        !formdata.get('advLink')
+      )
+        return toastr.error('请正确填写表单');
+
+      // 发送请求之前，将广告id和用户id添加到formdata中
+      formdata.append('advId', updateAdvId);
+      // 由于服务器接口要校验token，所以除了添加的数据之外，要额外添加当前用户id
+      formdata.append('id', JSON.parse(localStorage.getItem('user')).id);
+      // 发送reqUpdateAdv请求，修改广告数据
+      addOrEditResult = await reqUpdateAdv(formdata);
+    }
+
+    if (addOrEditResult.status) {
       // 清空表单
       $('#addAdvForm')[0].reset();
       // 清空预览图
       $('#advImgPreview')[0].src = '';
       // 提示用户验证成功
-      toastr.success(addAdvResult.message);
+      toastr.success(addOrEditResult.message);
       // 刷新页面
-      res.render(advList(addAdvResult.data));
+      res.render(advList(addOrEditResult.data));
     } else {
-      toastr.error(addAdvResult.message);
+      toastr.error(addOrEditResult.message);
       router.go('/login');
     }
   });
@@ -186,6 +219,36 @@ router.route('/index/advList', async function (req, res) {
       toastr.error(result.message);
       router.go('/login');
     }
+  });
+
+  // 修改广告数据，模态框里的内容
+  $('.delegation').on('click', '.adv-update-btn', async function (e) {
+    // 点击单条广告数据后，将模态框里的文本进行修改
+    $('#modalTitle').text('修改广告');
+    $('#saveAdv').text('修改');
+    // 获取要修改数据的广告id
+    // 如果自定义属性是以data-xxx的形式定义的，则获取时使用dataset获取，dataset是一个对象，对象中有所有data-形式的自定义属性
+    const advId = e.target.dataset.id;
+    // 发送请求获取数据
+    const { adv } = await reqGetOneAdv(advId);
+    // 将获取到的数据，插入到表单中
+    $('input[name=advTitle]').val(adv.advTitle);
+    $('input[name=advLink]').val(adv.advLink);
+    $('input[name=advCategory]').val(adv.advCategory);
+    $('#advImgPreview')[0].src = adv.advImg;
+
+    // 把当前要修改的广告id存储的当前文件作用域变量updateAdvId
+    updateAdvId = advId;
+  });
+
+  // 点击添加广告的按钮，修改标题文本和按钮文本
+  $('.delegation').on('click', '.add-adv-btn', async function (e) {
+    $('#modalTitle').text('添加广告');
+    $('#saveAdv').text('保存');
+    // 清空表单
+    $('#addAdvForm')[0].reset();
+    // 清空预览图
+    $('#advImgPreview')[0].src = '';
   });
 });
 

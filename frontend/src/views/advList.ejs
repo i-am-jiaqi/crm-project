@@ -1,6 +1,6 @@
 <div class="card">
   <div class="card-header">
-    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-default">
+    <button type="button" class="btn btn-primary btn-sm add-adv-btn" data-toggle="modal" data-target="#modal-default">
       添加广告
     </button>
   </div>
@@ -45,7 +45,8 @@
             </td>
             <td>
               <button type="button" class="btn btn-danger btn-xs deleteAdv" id="<%= data[i]._id %>">删除</button>
-              <button type="button" class="btn btn-primary btn-xs">修改</button>
+              <button type="button" class="btn btn-primary btn-xs adv-update-btn" data-toggle="modal"
+                data-target="#modal-default" data-id="<%= data[i]._id %>">修改</button>
             </td>
         </tr>
         <% } %>
@@ -59,7 +60,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">添加广告</h4>
+        <h4 class="modal-title" id="modalTitle">添加广告</h4>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true" id="cancel-x">×</span>
         </button>
